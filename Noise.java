@@ -8,14 +8,11 @@ package noise;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 import noise.util.BufferTools;
 import noise.util.EulerCamera;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import static org.lwjgl.opengl.GL11.*;
@@ -26,14 +23,13 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class Noise {
     DisplayMode DISPLAYMODE;
-    private static FloatBuffer lightPosition = BufferTools.asFlippedFloatBuffer(50, 10, 100, 1);
     private static EulerCamera camera;
     float[][] values = new float[100][100];
     float[][] ref = new float[100][100];
     boolean[][] ud = new boolean[100][100];
-    int i = 23;
-    ArrayList<Point> points = new ArrayList<Point>();
-    ArrayList<Point> queue = new ArrayList<Point>();
+    ArrayList<Point> points = new ArrayList<>();
+    ArrayList<Point> queue = new ArrayList<>();
+    boolean lines = true;
     
     public Noise (){
         // make a display
@@ -72,12 +68,14 @@ public class Noise {
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // go wireframe
             glColor3f(0.1f,0.1f,0.1f);
             glBegin(GL_QUADS);
-            for(int i = 0; i < 99; i++){
-                for (int j = 0; j < 99; j++){
-                    glVertex3f(i, values[i][j] + .001f, j);
-                    glVertex3f(i + 1, values[i + 1][j] + .001f, j);
-                    glVertex3f(i + 1, values[i + 1][j+1] + .001f, j + 1);
-                    glVertex3f(i, values[i][j + 1] + .001f, j + 1);
+            if (lines){
+                for(int i = 0; i < 99; i++){
+                    for (int j = 0; j < 99; j++){
+                        glVertex3f(i, values[i][j] + .001f, j);
+                        glVertex3f(i + 1, values[i + 1][j] + .001f, j);
+                        glVertex3f(i + 1, values[i + 1][j+1] + .001f, j + 1);
+                        glVertex3f(i, values[i][j + 1] + .001f, j + 1);
+                    }
                 }
             }
             glEnd();
@@ -95,18 +93,6 @@ public class Noise {
             }
             glEnd();
             
-//            glBegin(GL_POINTS);
-//            for(Point p : points){
-//                float t = p.lifetime / p.lmax;
-//                //glPointSize(2f * t);
-//                //glColor3f(t,0,0);
-//                glVertex3f(p.x, p.y, p.z);
-//                p.lifetime--;
-//                if (p.lifetime <= 0){
-//                    queue.add(p);
-//                }
-//            }
-//            glEnd();
             glPopMatrix();
             
             for(int i = 0; i < 99; i++){
@@ -160,7 +146,7 @@ public class Noise {
         glEnable(GL_NORMALIZE);
         glEnable(GL_COLOR_MATERIAL);
         glEnable(GL_DEPTH_TEST);
-        glLight(GL_LIGHT0, GL_POSITION, lightPosition);
+        glLight(GL_LIGHT0, GL_POSITION, BufferTools.asFlippedFloatBuffer(50, 10, 100, 1));
         glLightModel(GL_LIGHT_MODEL_AMBIENT, BufferTools.asFlippedFloatBuffer(.01f, 0.01f, 0.01f, 1));
         glLight(GL_LIGHT0, GL_AMBIENT, BufferTools.asFlippedFloatBuffer(.5f, .5f, .5f, 1));
         glLight(GL_LIGHT0, GL_DIFFUSE, BufferTools.asFlippedFloatBuffer(.7f, .7f, .7f, 1));
@@ -188,32 +174,17 @@ public class Noise {
     }
     
     private void checkInput() {
-//        camera.processKeyboard(2, 50);
-//        camera.processMouse(1, 80, -80);
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
             Display.destroy();
             System.exit(0);
         } else if (Keyboard.isKeyDown(Keyboard.KEY_X)) {
             System.out.println("X:" + camera.x() + " Y:" + camera.y() + " Z:" + camera.z());
             System.out.println("Pitch:" + camera.pitch() + "Yaw:" + camera.yaw() + "Roll:" + camera.roll());
-        } 
-//        if (Mouse.isButtonDown(0)) {
-//            Mouse.setGrabbed(true);
-//        } else if (Mouse.isButtonDown(1)) {
-//            Mouse.setGrabbed(false);
-//        }
-    }
-    
-    class Timed extends TimerTask{
-        public void run (){
-            i++;
-            System.out.println("redraw");
-            Random r = new Random((long) Math.random() + i);
-            for (int i = 0; i < 100; i++){
-                for (int j = 0; j < 100; j++){
-                    values[i][j] = r.nextFloat();
-                }
-            }
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_L)){
+            lines = true;
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_N)){
+            lines = false;
         }
     }
+    
 }
