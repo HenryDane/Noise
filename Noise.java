@@ -34,6 +34,7 @@ public class Noise {
     public Noise (){
         // make a display
         setupdisplay();
+        Display.setResizable(true);
         setupstates();
         setupcamera();
         
@@ -61,6 +62,7 @@ public class Noise {
             camera.applyTranslations();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             checkInput();
+            if (Display.wasResized()) glViewport(0, 0, Display.getWidth(), Display.getHeight());
             
             glPushMatrix();
             glScalef(2f, 2f, 2f);
