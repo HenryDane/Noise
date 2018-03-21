@@ -13,6 +13,7 @@ import noise.util.EulerCamera;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import static org.lwjgl.opengl.GL11.*;
@@ -41,9 +42,9 @@ public class Noise {
         // create random
         Random rand = new Random(System.currentTimeMillis());
         
-        // set pointsiz
+        // set pointsize
         glPointSize(3f);
-        
+                
         // init values
         for (int i = 0; i < 100; i++){
             for (int j = 0; j < 100; j++){
@@ -55,34 +56,45 @@ public class Noise {
                     values[i][j] = - values[i][j];
                 }
             }
-        }
+        }       
         
         while (!Display.isCloseRequested()) {
             glLoadIdentity();
             camera.applyTranslations();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             checkInput();
-            if (Display.wasResized()) glViewport(0, 0, Display.getWidth(), Display.getHeight());
-            
+            if (Display.wasResized()){
+                glViewport(0, 0, Display.getWidth(), Display.getHeight());
+            }
+                
             glPushMatrix();
             glScalef(2f, 2f, 2f);
-
+            glTranslatef(0f, .01f, 0f); // fix z fighting feat this ugly hack
+            
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // go wireframe
             glColor3f(0.1f,0.1f,0.1f);
-            glBegin(GL_QUADS);
+            glBegin(GL_TRIANGLES); // looks better
             if (lines){
                 for(int i = 0; i < 99; i++){
                     for (int j = 0; j < 99; j++){
+                        // first triangle
                         glVertex3f(i, values[i][j] + .001f, j);
                         glVertex3f(i + 1, values[i + 1][j] + .001f, j);
+                        glVertex3f(i, values[i][j + 1] + .001f, j + 1); 
+                        
+                        // second triangle
+                        glVertex3f(i + 1, values[i + 1][j] + .001f, j);
                         glVertex3f(i + 1, values[i + 1][j+1] + .001f, j + 1);
-                        glVertex3f(i, values[i][j + 1] + .001f, j + 1);
+                        glVertex3f(i, values[i][j + 1] + .001f, j + 1); 
                     }
                 }
             }
             glEnd();
-                       
-            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL ); // go wireframe
+            glPopMatrix();
+            
+            glPushMatrix();
+            glScalef(2f, 2f, 2f);
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL ); // go normal
             glColor3f(0.5f,0.5f,1.0f);
             glBegin(GL_QUADS);
             for(int i = 0; i < 99; i++){
@@ -99,6 +111,7 @@ public class Noise {
             
             for(int i = 0; i < 99; i++){
                 for (int j = 0; j < 99; j++){
+                    // process adjusts
                     if (ud[i][j]){
                         values[i][j] = values[i][j] + 0.01f;
                     } else {
@@ -107,20 +120,16 @@ public class Noise {
                     
                     if (Math.abs(values[i][j]) > Math.abs(ref[i][j])){
                         ud[i][j] = !ud[i][j];
-                        points.add(new Point(i, 1.3f, j, 10));
                     }
                 }
             }
                 
-            points.removeAll(queue);
+            //points.removeAll(queue);
             Display.update();
             Display.sync(60);
         }
     }
     
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         // TODO code application logic here
         Noise noise = new Noise();
@@ -147,14 +156,14 @@ public class Noise {
         glEnable(GL_LIGHT0);
         glEnable(GL_NORMALIZE);
         glEnable(GL_COLOR_MATERIAL);
-        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);        
         glLight(GL_LIGHT0, GL_POSITION, BufferTools.asFlippedFloatBuffer(50, 10, 100, 1));
         glLightModel(GL_LIGHT_MODEL_AMBIENT, BufferTools.asFlippedFloatBuffer(.01f, 0.01f, 0.01f, 1));
         glLight(GL_LIGHT0, GL_AMBIENT, BufferTools.asFlippedFloatBuffer(.5f, .5f, .5f, 1));
         glLight(GL_LIGHT0, GL_DIFFUSE, BufferTools.asFlippedFloatBuffer(.7f, .7f, .7f, 1));
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
-        glClearColor(.91f, .91f, .91f, 0.001f);
+        glClearColor(0.91f, 0.91f, 0.91f, 0.001f);
         glFogf(GL_FOG_START, 5f);
         glFogf(GL_FOG_END, 60.0f);
         glEnable(GL_FOG);
@@ -179,14 +188,11 @@ public class Noise {
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
             Display.destroy();
             System.exit(0);
-        } else if (Keyboard.isKeyDown(Keyboard.KEY_X)) {
-            System.out.println("X:" + camera.x() + " Y:" + camera.y() + " Z:" + camera.z());
-            System.out.println("Pitch:" + camera.pitch() + "Yaw:" + camera.yaw() + "Roll:" + camera.roll());
         } else if (Keyboard.isKeyDown(Keyboard.KEY_L)){
             lines = true;
         } else if (Keyboard.isKeyDown(Keyboard.KEY_N)){
             lines = false;
-        }
+        } 
     }
     
 }
