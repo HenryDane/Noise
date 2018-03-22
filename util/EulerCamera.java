@@ -17,8 +17,8 @@ import org.lwjgl.util.glu.GLU;
 public final class EulerCamera implements Camera {
 
     public float x = 0;
-    private float y = 0;
-    private float z = 0;
+    public float y = 0;
+    public float z = 0;
     private float pitch = 0;
     private float yaw = 0;
     private float roll = 0;

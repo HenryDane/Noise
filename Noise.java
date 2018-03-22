@@ -31,8 +31,16 @@ public class Noise {
     ArrayList<Point> points = new ArrayList<>();
     ArrayList<Point> queue = new ArrayList<>();
     boolean lines = true;
+    boolean moving = true;
+    
+    float peak_height = 1.5f;
+    float peak_n_height = .6f;
     
     public Noise (){
+        int start_x = 0;
+        int stop_x = 99;
+        
+        
         // make a display
         setupdisplay();
         Display.setResizable(true);
@@ -56,7 +64,29 @@ public class Noise {
                     values[i][j] = - values[i][j];
                 }
             }
-        }       
+        }    
+        
+        // init bumps
+        for (int i = 0; i < 25; i++){
+            int x = Math.abs(rand.nextInt() % 97) + 1; 
+            int y = Math.abs(rand.nextInt() % 97) + 1;
+            values[x][y] += peak_height;
+            values[(x - 1) % 99][(y) % 99] += peak_n_height;
+            values[(x - 1) % 99][(y - 1) % 99] += peak_n_height;
+            values[(x) % 99][(y - 1) % 99] += peak_n_height;
+            values[(x + 1) % 99][(y - 1) % 99] += peak_n_height;
+            values[(x + 1) % 99][(y) % 99] += peak_n_height;
+            values[(x + 1) % 99][(y + 1) % 99] += peak_n_height;
+            values[(x) % 99][(y + 1) % 99] += peak_n_height;
+            values[(x - 1) % 99][(y + 1) % 99] += peak_n_height;
+        }
+        
+        // reset ref values
+        for (int i = 0; i < 100; i++){
+            for (int j = 0; j < 100; j++){
+                ref[i][j] = values[i][j] + 0.1f;
+            }
+        }
         
         while (!Display.isCloseRequested()) {
             glLoadIdentity();
@@ -71,21 +101,28 @@ public class Noise {
             glScalef(2f, 2f, 2f);
             glTranslatef(0f, .01f, 0f); // fix z fighting feat this ugly hack
             
+            System.out.println("X:" + camera.x + " STOP:" + stop_x + " START: " + start_x);
+            
+            if (camera.x + 50 > -1 + stop_x * 2  ){
+                stop_x += 1;
+                start_x += 1;
+            }
+            
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // go wireframe
             glColor3f(0.1f,0.1f,0.1f);
             glBegin(GL_TRIANGLES); // looks better
             if (lines){
-                for(int i = 0; i < 99; i++){
+                for(int i = start_x; i < stop_x; i++){
                     for (int j = 0; j < 99; j++){
                         // first triangle
-                        glVertex3f(i, values[i][j] + .001f, j);
-                        glVertex3f(i + 1, values[i + 1][j] + .001f, j);
-                        glVertex3f(i, values[i][j + 1] + .001f, j + 1); 
+                        glVertex3f(i, values[i % 99][j] + .001f, j);
+                        glVertex3f(i + 1, values[(i + 1)% 99][j] + .001f, j);
+                        glVertex3f(i, values[i % 99][j + 1] + .001f, j + 1); 
                         
                         // second triangle
-                        glVertex3f(i + 1, values[i + 1][j] + .001f, j);
-                        glVertex3f(i + 1, values[i + 1][j+1] + .001f, j + 1);
-                        glVertex3f(i, values[i][j + 1] + .001f, j + 1); 
+                        glVertex3f(i + 1, values[(i + 1) % 99][j] + .001f, j);
+                        glVertex3f(i + 1, values[(i + 1) % 99][j+1] + .001f, j + 1);
+                        glVertex3f(i, values[i % 99][j + 1] + .001f, j + 1); 
                     }
                 }
             }
@@ -97,12 +134,12 @@ public class Noise {
             glPolygonMode( GL_FRONT_AND_BACK, GL_FILL ); // go normal
             glColor3f(0.5f,0.5f,1.0f);
             glBegin(GL_QUADS);
-            for(int i = 0; i < 99; i++){
+            for(int i = start_x; i < stop_x + 1; i++){
                 for (int j = 0; j < 99; j++){
-                    glVertex3f(i, values[i][j], j);
-                    glVertex3f(i + 1, values[i + 1][j], j);
-                    glVertex3f(i + 1, values[i + 1][j+1], j + 1);
-                    glVertex3f(i, values[i][j + 1], j + 1);
+                    glVertex3f(i, values[i % 99][j], j);
+                    glVertex3f(i + 1, values[(i + 1) % 99][j], j);
+                    glVertex3f(i + 1, values[(i + 1) % 99][j + 1], j + 1);
+                    glVertex3f(i, values[i % 99][j + 1], j + 1);
                 }
             }
             glEnd();
@@ -123,6 +160,10 @@ public class Noise {
                     }
                 }
             }
+            
+            /* if (moving){
+                camera.x += 0.5f; // movement
+            } */
                 
             //points.removeAll(queue);
             Display.update();
@@ -180,7 +221,7 @@ public class Noise {
             0).setNearClippingPane(2).setFarClippingPane(60).setFieldOfView(60).build();
         camera.applyOptimalStates();
         camera.applyPerspectiveMatrix();
-        camera.setPosition(50, 8, 100);
+        camera.setPosition(0, 8, 100);
         camera.setRotation(2, 90, 0);
     }
     
@@ -192,7 +233,10 @@ public class Noise {
             lines = true;
         } else if (Keyboard.isKeyDown(Keyboard.KEY_N)){
             lines = false;
-        } 
-    }
-    
+        } /*else if (Keyboard.isKeyDown(Keyboard.KEY_MINUS)){
+            moving = false;
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_EQUALS)){
+            moving = true;
+        }*/
+    } 
 }
