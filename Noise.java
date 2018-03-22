@@ -29,7 +29,7 @@ public class Noise {
     float[][] ref = new float[100][100];
     boolean[][] ud = new boolean[100][100];
     ArrayList<Point> points = new ArrayList<>();
-    ArrayList<Point> queue = new ArrayList<>();
+    //ArrayList<Point> queue = new ArrayList<>();
     boolean lines = true;
     boolean moving = true;
     
@@ -161,9 +161,9 @@ public class Noise {
                 }
             }
             
-            /* if (moving){
+            if (moving){
                 camera.x += 0.5f; // movement
-            } */
+            }
                 
             //points.removeAll(queue);
             Display.update();
@@ -210,6 +210,8 @@ public class Noise {
         glEnable(GL_FOG);
         glFogi(GL_FOG_MODE, GL_LINEAR);
         glFogf(GL_FOG_DENSITY, .05f);
+        
+        glCullFace(GL_BACK); // halves amount of processing necessary
         
         FloatBuffer fogColor = BufferUtils.createFloatBuffer(4);
         fogColor.put(1f).put(1f).put(1f).put(1f).flip();
