@@ -83,12 +83,6 @@ public:
         glTranslatef(-x, -y, -z);
         glPopAttrib();
     }
-    /*void applyOptimalStates() {
-        if (!GLContext.getCapabilities().GL_ARB_depth_clamp) {
-        } else {
-            glEnable(GL_DEPTH_CLAMP);
-        }
-    }*/
     void applyOrthographicMatrix() {
         glPushAttrib(GL_TRANSFORM_BIT);
         glMatrixMode(GL_PROJECTION);
