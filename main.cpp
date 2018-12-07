@@ -59,6 +59,20 @@ void draw_triangle(vec3f_t a, vec3f_t b, vec3f_t c){
     glVertex3f(c.x, c.y, c.z);
 }
 
+void draw_triangle(vec3f_t a, vec3f_t b, vec3f_t c, vec3f_t clr_a, vec3f_t clr_b, vec3f_t clr_c){
+    vec3f_t n = calc_normal(a, b, c);
+
+    n = n * -1.0f;
+
+    if (normal_flag) glNormal3f(n.x, n.y, n.z);
+    glColor3f(clr_a.x, clr_a.y, clr_a.z);
+    glVertex3f(a.x, a.y, a.z);
+    glColor3f(clr_b.x, clr_b.y, clr_b.z);
+    glVertex3f(b.x, b.y, b.z);
+    glColor3f(clr_c.x, clr_c.y, clr_c.z);
+    glVertex3f(c.x, c.y, c.z);
+}
+
 int main() {
     srand(1826); // init
 
@@ -133,6 +147,14 @@ int main() {
         glTranslatef(0.0, 0.05, 0.0);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glColor3f(0.1, 0.1, 0.1);
+        /*
+            Defalt 0.5 0.5 1
+            Peak 0 1 0.74901960784
+
+            m_r -> 0.5 * (1 + value)
+            m_g -> 0.5 + 0.5 * (1 + value)
+            m_b -> 1 + ( 1 - 0.74901960784) * (1 + value)
+        */
         glBegin(GL_TRIANGLES); // looks better
         if (lines){ // lines
             for(int i = 0; i < MATRIX_WIDTH; i++){
@@ -159,9 +181,23 @@ int main() {
             for(int i = 0; i < MATRIX_WIDTH; i++){
                 for (int j = 0; j < MATRIX_HEIGHT - 1; j++){
                     vec3f_t a = {i, values[j * MATRIX_WIDTH + (i % 99)], j};
+                    vec3f_t clr_a = {0.5 * (1 + values[j * MATRIX_WIDTH + (i % 99)]) / 2,
+                                     0.5 + 0.5 * (1 + values[j * MATRIX_WIDTH + (i % 99)]) / 2,
+                                     1 + ( 1 - 0.74901960784) * (1 + values[j * MATRIX_WIDTH + (i % 99)]) / 2};
                     vec3f_t b = {i + 1, values[j * MATRIX_WIDTH + ((i + 1) % 99)], j};
+                    vec3f_t clr_b = {0.5 * (1 + values[j * MATRIX_WIDTH + ((i + 1) % 99)]) / 2,
+                                     0.5 + 0.5 * (1 + values[j * MATRIX_WIDTH + ((i + 1) % 99)]) / 2,
+                                     1 + ( 1 - 0.74901960784) * (1 + values[j * MATRIX_WIDTH + ((i + 1) % 99)]) / 2};
                     vec3f_t c = {i, values[(j + 1) * MATRIX_WIDTH + (i % 99)], j + 1};
+                    vec3f_t clr_c = {0.5 * (1 + values[(j + 1) * MATRIX_WIDTH + (i % 99)]) / 2,
+                                     0.5 + 0.5 * (1 + values[(j + 1) * MATRIX_WIDTH + (i % 99)]) / 2,
+                                     1 + ( 1 - 0.74901960784) * (1 + values[(j + 1) * MATRIX_WIDTH + (i % 99)]) / 2};
                     vec3f_t d = {i + 1, values[(j + 1) * MATRIX_WIDTH + (i + 1 % 99)], j + 1};
+                    vec3f_t clr_d = {0.5 * (1 + values[(j + 1) * MATRIX_WIDTH + (i + 1 % 99)]) / 2,
+                                     0.5 + 0.5 * (1 + values[(j + 1) * MATRIX_WIDTH + (i + 1 % 99)]) / 2,
+                                     1 + ( 1 - 0.74901960784) * (1 + values[(j + 1) * MATRIX_WIDTH + (i + 1 % 99)]) / 2};
+                    //draw_triangle(a, b, c, clr_a, clr_b, clr_c);
+                    //draw_triangle(b, d, c, clr_b, clr_d, clr_c);
                     draw_triangle(a, b, c);
                     draw_triangle(b, d, c);
                 }
@@ -213,6 +249,8 @@ void init_gl() {
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glClearColor(0.91, 0.91, 0.91, 0.001);
+    //glClearColor(0.91, 0.728, 0.91, 0.001);
+    //glClearColor(1, 0.8, 1, 0.001);
     glFogf(GL_FOG_START, 5.0);
     glFogf(GL_FOG_END, 60.0);
     glEnable(GL_FOG);
@@ -221,6 +259,7 @@ void init_gl() {
 
     glCullFace(GL_BACK); // halves amount of processing necessary
 
-    float e[4] = {1.0, 1.0, 1.0, 1.0};
+    //float e[4] = {1.0, 1.0, 1.0, 1.0};
+    float e[4] = {0.91, 0.91, 0.91, 1.0};
     glFogfv(GL_FOG_COLOR, e);
 }
