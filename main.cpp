@@ -8,6 +8,9 @@
 #define MATRIX_WIDTH 100
 #define MATRIX_HEIGHT 100
 
+#define DEFAULT_W 800
+#define DEFAULT_H 600
+
 struct vec3f_t {
     float x;
     float y;
@@ -31,6 +34,8 @@ float height = 600;
 
 bool lines = true;
 bool normal_flag = true;
+
+bool fullscreen_f = true;
 
 float randf(float minv, float maxv) {
     return ((float(rand()) / float(RAND_MAX)) * (maxv - minv)) + minv;
@@ -73,29 +78,25 @@ void draw_triangle(vec3f_t a, vec3f_t b, vec3f_t c, vec3f_t clr_a, vec3f_t clr_b
     glVertex3f(c.x, c.y, c.z);
 }
 
+void init_cam(EulerCamera &camera);
+
 int main() {
     srand(1826); // init
 
     // create the window
-    sf::Window window(sf::VideoMode(width, height), "OpenGL", sf::Style::Default, sf::ContextSettings(32));
+    sf::Window window(sf::VideoMode(), "OpenGL", sf::Style::Fullscreen, sf::ContextSettings(32));
     window.setVerticalSyncEnabled(true);
+    width = window.getSize().x;
+    height = window.getSize().y;
 
     // activate the window
     window.setActive(true);
 
     // load resources, initialize the OpenGL states, ...
-    glEnable(GL_TEXTURE_2D);
-    glPointSize(3);
     init_gl();
 
     EulerCamera camera(width / height, 23, 34, 87);
-    camera.setNearClippingPane(2);
-    camera.setFarClippingPane(60);
-    camera.setFieldOfView(60);
-//    camera.applyOptimalStates();
-    camera.applyPerspectiveMatrix();
-    camera.setPosition(0, 8, 100);
-    camera.setRotation(2, 90, 0);
+    init_cam(camera);
 
     // initalize stuff
     float * values = new float[MATRIX_WIDTH * MATRIX_HEIGHT];
@@ -131,6 +132,28 @@ int main() {
                     break;
                 case sf::Keyboard::Tilde:
                     normal_flag = !normal_flag;
+                    break;
+                case sf::Keyboard::Enter:
+                    fullscreen_f = !fullscreen_f;
+
+                    window.close();
+
+                    if (fullscreen_f) {
+                        window.create(sf::VideoMode(), "OpenGL", sf::Style::Fullscreen, sf::ContextSettings(32));
+                    } else {
+                        window.create(sf::VideoMode(DEFAULT_W, DEFAULT_H), "OpenGL", sf::Style::Default, sf::ContextSettings(32));
+                    }
+
+                    window.setActive(true);
+
+                    init_gl();
+                    init_cam(camera);
+
+                    width = window.getSize().x;
+                    height = window.getSize().y;
+                    glViewport(0, 0, width, height); // adjust the viewport when the window is resized
+                    break;
+                default:
                     break;
                 }
             }
@@ -231,6 +254,7 @@ int main() {
 }
 
 void init_gl() {
+    glPointSize(3);
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);
@@ -262,4 +286,14 @@ void init_gl() {
     //float e[4] = {1.0, 1.0, 1.0, 1.0};
     float e[4] = {0.91, 0.91, 0.91, 1.0};
     glFogfv(GL_FOG_COLOR, e);
+}
+
+void init_cam(EulerCamera &camera) {
+    camera.setNearClippingPane(2);
+    camera.setFarClippingPane(60);
+    camera.setFieldOfView(60);
+//    camera.applyOptimalStates();
+    camera.applyPerspectiveMatrix();
+    camera.setPosition(0, 8, 100);
+    camera.setRotation(2, 90, 0);
 }
